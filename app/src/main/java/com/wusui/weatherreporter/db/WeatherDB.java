@@ -5,8 +5,6 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
 import com.wusui.weatherreporter.model.City;
-import com.wusui.weatherreporter.model.County;
-import com.wusui.weatherreporter.model.Province;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,8 +14,8 @@ import java.util.List;
  */
 
 public class WeatherDB {
-    public static final String DB_NAME = "weather_reporter";
-    public static final int VERSION = 1;
+    private static final String DB_NAME = "weather_reporter";
+    private static final int VERSION = 1;
     private static WeatherDB sWeatherDB;
     private SQLiteDatabase db;
 
@@ -33,74 +31,32 @@ public class WeatherDB {
         return sWeatherDB;
     }
 
-    public void saveProvince(Province province){
-        if (province != null){
-            db.execSQL("INSERT INTO Province(province_name) VALUES(?)",new Object[]{province.getProvinceName()});
-            db.execSQL("INSERT INTO Province(province_code) VALUES(?)",new Object[]{province.getProvinceCode()});
-        }
-    }
-
-    public List<Province>loadProvince(){
-        List<Province>list = new ArrayList<>();
-        Cursor cursor = db.rawQuery("select * from province",null);
-        if (cursor.moveToFirst()){
-            do {
-                Province province = new Province();
-                province.setId(cursor.getInt(cursor.getColumnIndex("id")));
-                province.setProvinceName(cursor.getString(cursor.getColumnIndex("province_name")));
-                province.setProvinceCode(cursor.getString(cursor.getColumnIndex("province_code")));
-                list.add(province);
-            }while (cursor.moveToNext());
-        }
-        return list;
-
-    }
 
     public void saveCity(City city){
         if (city != null){
-            db.execSQL("INSERT INTO City(city_name) VALUES(?)",new Object[]{city.getCityName()});
-            db.execSQL("INSERT INTO City(city_code) VALUES(?)",new Object[]{city.getCityCode()});
-            db.execSQL("INSERT INTO City(province_id) VALUES(?)",new Object[]{city.getProvinceId()}) ;
+            db.execSQL("INSERT INTO City(city) VALUES(?)",new Object[]{city.getCity()});
+            db.execSQL("INSERT INTO City(city_id) VALUES(?)",new Object[]{city.getCityId()});
+            db.execSQL("INSERT INTO City(city_lat) VALUES(?)",new Object[]{city.getLat()});
+            db.execSQL("INSERT INTO City(city_lon) VALUES(?)",new Object[]{city.getLon()});
+            db.execSQL("INSERT INTO City(province) VALUES(?)",new Object[]{city.getProvince()}) ;
         }
     }
 
-    public List<City>loadCities(int provinceId){
+    public List<City>loadCities(){
         List<City>list = new ArrayList<>();
-        Cursor cursor = db.rawQuery("select province_id from City",null);
+        Cursor cursor = db.rawQuery("select Province from City",null);
         if (cursor.moveToFirst()){
             do {
                 City city = new City();
-                city.setId(cursor.getInt(cursor.getColumnIndex("id")));
-                city.setCityName(cursor.getString(cursor.getColumnIndex("city_name")));
-                city.setCityCode(cursor.getString(cursor.getColumnIndex("city_code")));
-                city.setProvinceId(provinceId);
+                city.setCityId(cursor.getString(cursor.getColumnIndex("city_id")));
+                city.setCity(cursor.getString(cursor.getColumnIndex("city")));
+                city.setLat(cursor.getDouble(cursor.getColumnIndex("city_lat")));
+                city.setLon(cursor.getDouble(cursor.getColumnIndex("city_lon")));
+                city.setProvince(cursor.getString(cursor.getColumnIndex("province")));
                 list.add(city);
             }while (cursor.moveToNext());
         }
-        return list;
-    }
-
-    public void saveCounty(County county){
-        if (county != null){
-            db.execSQL("INSERT INTO County(county_name) VALUES(?)",new Object[]{county.getCountyName()});
-            db.execSQL("INSERT INTO County(county_code) VALUES(?)",new Object[]{county.getCountyCode()});
-            db.execSQL("INSERT INTO County(city_id) VALUES(?)",new Object[]{county.getCityId()});
-        }
-    }
-
-    public List<County> loadCounties(int cityId){
-        List<County> list = new ArrayList<>();
-        Cursor cursor = db.rawQuery("select city_id from County",null);
-        if (cursor.moveToFirst()){
-            do {
-                County county = new County();
-                county.setId(cursor.getInt(cursor.getColumnIndex("id")));
-                county.setCountyCode(cursor.getString(cursor.getColumnIndex("county_name")));
-                county.setCountyName(cursor.getString(cursor.getColumnIndex("county_code")));
-                county.setCityId(cityId);
-                list.add(county);
-            }while (cursor.moveToNext());
-        }
+        cursor.close();
         return list;
     }
 }
